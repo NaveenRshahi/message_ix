@@ -72,13 +72,18 @@ MACRO_ITEMS = dict(
     prfconst=dict(ix_type='par', idx_sets=['node', 'sector']),
     price_MESSAGE=dict(ix_type='par', idx_sets=['node', 'sector', 'year']),
 
+    # Total consumption
     C=dict(ix_type='var', idx_sets=['node', 'year']),
-    COST_NODAL_NET=dict(ix_type='var', idx_sets=['node', 'year']),
     COST_NODAL=dict(ix_type='var', idx_sets=['node', 'year']),
-    DEMAND=dict(ix_type='var',
-                idx_sets=['node', 'commodity', 'level', 'year', 'time']),
+    # Net of trade and emissions costs
+    COST_NODAL_NET=dict(ix_type='var', idx_sets=['node', 'year']),
+    DEMAND=dict(
+        ix_type='var',
+        idx_sets=['node', 'commodity', 'level', 'year', 'time']
+    ),
     EC=dict(ix_type='var', idx_sets=['node', 'year']),
     GDP=dict(ix_type='var', idx_sets=['node', 'year']),
+    # Total investment
     I=dict(ix_type='var', idx_sets=['node', 'year']),  # noqa: E741
     K=dict(ix_type='var', idx_sets=['node', 'year']),
     KN=dict(ix_type='var', idx_sets=['node', 'year']),
@@ -86,8 +91,19 @@ MACRO_ITEMS = dict(
     N_ITER=dict(ix_type='var', idx_sets=None),
     NEWENE=dict(ix_type='var', idx_sets=['node', 'sector', 'year']),
     PHYSENE=dict(ix_type='var', idx_sets=['node', 'sector', 'year']),
-    PRICE=dict(ix_type='var',
-               idx_sets=['node', 'commodity', 'level', 'year', 'time']),
+    PRICE=dict(
+        ix_type='var',
+        idx_sets=['node', 'commodity', 'level', 'year', 'time']
+    ),
+    # commented: see description in models.py.
+    # PRICE_COMMODITY=dict(
+    #     ix_type="var",
+    #     idx_sets=["node", "commodity", "level", "year", "time"]
+    # ),
+    # PRICE_EMISSION=dict(
+    #     ix_type="var",
+    #     idx_sets=["node", "type_emission", "type_tec", "y"]
+    # ),
     PRODENE=dict(ix_type='var', idx_sets=['node', 'sector', 'year']),
     UTILITY=dict(ix_type='var', idx_sets=None),
     Y=dict(ix_type='var', idx_sets=['node', 'year']),
