@@ -3,8 +3,7 @@ import pandas as pd
 
 from ixmp import IAMC_IDX
 
-from message_ix import Scenario
-from message_ix.utils import make_df
+from message_ix import Scenario, make_df
 
 
 SCENARIO = {
@@ -88,75 +87,108 @@ def make_dantzig(mp, solve=False, multi_year=False, **solve_opts):
     # Parameters
     par = {}
 
-    demand = {'node': 'new-york chicago topeka'.split(),
-              'value': [325, 300, 275]}
-    par['demand'] = make_df(
-        pd.DataFrame.from_dict(demand), commodity='cases', level='consumption',
-        time='year', unit='case', year=1963)
+    # Common values
+    common = dict(
+        commodity="cases",
+        year=1963,
+        year_vtg=1963,
+        year_act=1963,
+        time="year",
+        time_dest="year",
+        time_origin="year",
+    )
 
-    b_a_u = {'node_loc': ['seattle', 'san-diego'],
-             'value': [350, 600]}
-    par['bound_activity_up'] = make_df(
-        pd.DataFrame.from_dict(b_a_u), mode='production',
-        technology='canning_plant', time='year', unit='case', year_act=1963)
-    par['ref_activity'] = par['bound_activity_up'].copy()
+    par["demand"] = make_df(
+        "demand",
+        **common,
+        node=["new-york", "chicago", "topeka"],
+        level="consumption",
+        value=[325, 300, 275],
+        unit="case",
+    )
+    par["bound_activity_up"] = make_df(
+        "bound_activity_up",
+        **common,
+        node_loc=["seattle", "san-diego"],
+        mode="production",
+        technology="canning_plant",
+        value=[350, 600],
+        unit="case",
+    )
+    par["ref_activity"] = par["bound_activity_up"].copy()
 
-    input = pd.DataFrame([
-        ['to_new-york', 'seattle', 'seattle', t[1]],
-        ['to_chicago', 'seattle', 'seattle', t[1]],
-        ['to_topeka', 'seattle', 'seattle', t[1]],
-        ['to_new-york', 'san-diego', 'san-diego', t[2]],
-        ['to_chicago', 'san-diego', 'san-diego', t[2]],
-        ['to_topeka', 'san-diego', 'san-diego', t[2]],
-    ], columns=['mode', 'node_loc', 'node_origin', 'technology'])
-    par['input'] = make_df(
-        input, commodity='cases', level='supply', time='year',
-        time_origin='year', unit='case', value=1, year_act=1963,
-        year_vtg=1963)
+    input = pd.DataFrame(
+        [
+            ["to_new-york", "seattle", "seattle", t[1]],
+            ["to_chicago", "seattle", "seattle", t[1]],
+            ["to_topeka", "seattle", "seattle", t[1]],
+            ["to_new-york", "san-diego", "san-diego", t[2]],
+            ["to_chicago", "san-diego", "san-diego", t[2]],
+            ["to_topeka", "san-diego", "san-diego", t[2]],
+        ],
+        columns=["mode", "node_loc", "node_origin", "technology"]
+    )
+    par["input"] = make_df(
+        "input",
+        **input,
+        **common,
+        level="supply",
+        value=1,
+        unit="case",
+    )
 
-    output = pd.DataFrame([
-        ['supply', 'production', 'seattle', 'seattle', t[0]],
-        ['supply', 'production', 'san-diego', 'san-diego', t[0]],
-        ['consumption', 'to_new-york', 'new-york', 'seattle', t[1]],
-        ['consumption', 'to_chicago', 'chicago', 'seattle', t[1]],
-        ['consumption', 'to_topeka', 'topeka', 'seattle', t[1]],
-        ['consumption', 'to_new-york', 'new-york', 'san-diego', t[2]],
-        ['consumption', 'to_chicago', 'chicago', 'san-diego', t[2]],
-        ['consumption', 'to_topeka', 'topeka', 'san-diego', t[2]],
-    ], columns=['level', 'mode', 'node_dest', 'node_loc', 'technology'])
-    par['output'] = make_df(
-        output, commodity='cases', time='year', time_dest='year', unit='case',
-        value=1, year_act=1963, year_vtg=1963)
+    output = pd.DataFrame(
+        [
+            ["supply", "production", "seattle", "seattle", t[0]],
+            ["supply", "production", "san-diego", "san-diego", t[0]],
+            ["consumption", "to_new-york", "new-york", "seattle", t[1]],
+            ["consumption", "to_chicago", "chicago", "seattle", t[1]],
+            ["consumption", "to_topeka", "topeka", "seattle", t[1]],
+            ["consumption", "to_new-york", "new-york", "san-diego", t[2]],
+            ["consumption", "to_chicago", "chicago", "san-diego", t[2]],
+            ["consumption", "to_topeka", "topeka", "san-diego", t[2]],
+        ],
+        columns=["level", "mode", "node_dest", "node_loc", "technology"]
+    )
+    par["output"] = make_df("output", **output, **common, value=1, unit="case")
 
     # Variable cost: cost per kilometre × distance (neither parametrized
     # explicitly)
-    var_cost = pd.DataFrame([
-        ['to_new-york', 'seattle', 'transport_from_seattle', 0.225],
-        ['to_chicago', 'seattle', 'transport_from_seattle', 0.153],
-        ['to_topeka', 'seattle', 'transport_from_seattle', 0.162],
-        ['to_new-york', 'san-diego', 'transport_from_san-diego', 0.225],
-        ['to_chicago', 'san-diego', 'transport_from_san-diego', 0.162],
-        ['to_topeka', 'san-diego', 'transport_from_san-diego', 0.126],
-    ], columns=['mode', 'node_loc', 'technology', 'value'])
-    par['var_cost'] = make_df(
-        var_cost, time='year', unit='USD/case', year_act=1963, year_vtg=1963)
+    var_cost = pd.DataFrame(
+        [
+            ["to_new-york", "seattle", "transport_from_seattle", 0.225],
+            ["to_chicago", "seattle", "transport_from_seattle", 0.153],
+            ["to_topeka", "seattle", "transport_from_seattle", 0.162],
+            ["to_new-york", "san-diego", "transport_from_san-diego", 0.225],
+            ["to_chicago", "san-diego", "transport_from_san-diego", 0.162],
+            ["to_topeka", "san-diego", "transport_from_san-diego", 0.126],
+        ],
+        columns=["mode", "node_loc", "technology", "value"]
+    )
+    par["var_cost"] = make_df(
+        "var_cost", **var_cost, **common, unit="USD/case"
+    )
 
     for name, value in par.items():
         scen.add_par(name, value)
 
     if multi_year:
-        scen.add_set('year', [1964, 1965])
-        scen.add_par('technical_lifetime', ['seattle', 'canning_plant', 1964],
-                     3, 'y')
+        scen.add_set("year", [1964, 1965])
+        scen.add_par(
+            "technical_lifetime", ["seattle", "canning_plant", 1964], 3, "y"
+        )
 
     if solve:
         # Always read one equation. Used by test_core.test_year_int.
-        scen.init_equ('COMMODITY_BALANCE_GT',
-                      ['node', 'commodity', 'level', 'year', 'time'])
-        solve_opts['equ_list'] = solve_opts.get('equ_list', []) \
-            + ['COMMODITY_BALANCE_GT']
+        scen.init_equ(
+            "COMMODITY_BALANCE_GT",
+            ["node", "commodity", "level", "year", "time"]
+        )
+        solve_opts["equ_list"] = (
+            solve_opts.get("equ_list", []) + ["COMMODITY_BALANCE_GT"]
+        )
 
-    scen.commit('Created a MESSAGE-scheme version of the transport problem.')
+    scen.commit("Created a MESSAGE-scheme version of the transport problem.")
     scen.set_as_default()
 
     if solve:
