@@ -1,4 +1,4 @@
-import collections
+from collections.abc import Mapping
 from functools import lru_cache
 from itertools import product
 import logging
@@ -258,7 +258,7 @@ class Scenario(ixmp.Scenario):
         hierarchy = []
 
         def recurse(k, v, parent='World'):
-            if isinstance(v, collections.Mapping):
+            if isinstance(v, Mapping):
                 for _parent, _data in v.items():
                     for _k, _v in _data.items():
                         recurse(_k, _v, parent=_parent)
